@@ -141,6 +141,12 @@ scanf f s = do
   (r, _) : _ <- pure (readsFormat f s)
   pure r
 
+-- | Same as scanf, but returns the unparsed string as well.
+scanf' :: Format t -> String -> Maybe (t, String)
+scanf' f s = do
+  x : _ <- pure (readsFormat f s)
+  pure x
+
 -- | Print a string according to a format string.
 --
 -- @
