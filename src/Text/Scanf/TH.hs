@@ -65,6 +65,7 @@ formatString ('%' : s1) =
               '\'' -> toEnum 0x27
               '"'  -> toEnum 0x22
               '?'  -> toEnum 0x3f
+              '0'  -> toEnum 0x00
               _    -> error "Unknown escape sequence"
 
         parseScanset' (c1 : '-' : ']' : t'') = (insert '-' $ insert c1 set', t''')
