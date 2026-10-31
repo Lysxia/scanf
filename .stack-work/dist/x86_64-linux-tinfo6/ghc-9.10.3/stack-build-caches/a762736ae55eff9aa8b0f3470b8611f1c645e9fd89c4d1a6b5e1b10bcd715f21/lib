@@ -1,0 +1,10 @@
+/dcs/25/u5742529/scanf/README.md:
+  hash: dc91986fd5bc06598747ee134a7a980968323d74c643365394748e4f94151db5
+/dcs/25/u5742529/scanf/scanf.cabal:
+  hash: a4d760fc31120be424a3527553336679493882d7fac78c148cb8797a67c35f36
+/dcs/25/u5742529/scanf/src/Text/Scanf.hs:
+  hash: ab1b0a9c8cb7b6848c3357106432efd8ab42d902dfdf295f5db906ac29df63d1
+/dcs/25/u5742529/scanf/src/Text/Scanf/Internal.hs:
+  hash: af54f7a68d3eae3fe3b53195278eb054f3e768189eaf9bce56c5be46c420a77a
+/dcs/25/u5742529/scanf/src/Text/Scanf/TH.hs:
+  hash: 1f8bc8e386e786d689f5f4cb7254ee35350876a703b644ce210cc32ba70bfafe

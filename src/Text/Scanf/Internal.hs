@@ -6,6 +6,7 @@ module Text.Scanf.Internal where
 
 import Data.Char (isSpace)
 import Data.List (stripPrefix)
+import Data.Set  (Set)
 
 -- | A pretty pair type to build lists with values of different types. 
 -- Remember to close lists with @()@.
@@ -26,7 +27,8 @@ data Format t where
   Constant :: String -> Format t -> Format t
   Whitespace :: String -> Format t -> Format t
   Readable :: (Read a, Show a) => Format t -> Format (a :+ t)
-  String :: Format t -> Format (String :+ t)  -- whitespace delimited
+  String :: Format t -> Format (String :+ t)                       -- whitespace delimited
+  Scanset :: Set Char -> Bool -> Format t -> Format (String :+ t)  -- custom delimiter
   Char :: Format t -> Format (Char :+ t)
 
 deriving instance Show (Format t)
@@ -96,6 +98,10 @@ double = Readable
 string :: Format t -> Format (String :+ t)
 string = String
 
+-- | Format a scanset 'String'.
+scanset :: Set Char -> Bool -> Format t -> Format (String :+ t)
+scanset = Scanset
+
 -- | Format a 'Char'.
 char :: Format t -> Format (Char :+ t)
 char = Char
@@ -112,6 +118,9 @@ readsFormat (Readable f) s = do
   readmap (a :+) (readsFormat f) s'
 readsFormat (String f) s = do
   let (s0, s') = break isSpace s
+  readmap (s0 :+) (readsFormat f) s'
+readsFormat (Scanset set inc f) s = do
+  let (s0, s') = break (if inc then not . flip elem set else flip elem set) s
   readmap (s0 :+) (readsFormat f) s'
 readsFormat (Char f) s = do
   c : s' <- pure s
@@ -142,6 +151,7 @@ printf :: Format t -> t -> String
 printf (Constant z f) t = z ++ printf f t
 printf (Readable f) (a :+ t) = show a ++ printf f t
 printf (String f) (s :+ t) = s ++ printf f t
+printf (Scanset _ _ f) (s :+ t) = s ++ printf f t
 printf (Char f) (c :+ t) = c : printf f t
 printf (Whitespace s f) t = s ++ printf f t
 printf Empty _ = ""

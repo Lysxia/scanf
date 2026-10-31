@@ -17,6 +17,7 @@ module Text.Scanf
   , int
   , double
   , string
+  , scanset
   , char
   ) where
 

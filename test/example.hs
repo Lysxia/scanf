@@ -20,6 +20,21 @@ main = do
   scanf [fmt|%s %s|] " a b"
     =? Just ("" :+ "a" :+ ())
 
+  scanf [fmt|%[ ab]|] " a b"
+    =? Just (" a b" :+ ())
+
+  scanf [fmt|%[^ ab]|] "c a b"
+    =? Just ("c" :+ ())
+
+  scanf [fmt|%[]]|] "]]]]]]]a]]]]]"
+    =? Just ("]]]]]]]" :+ ())
+
+  scanf [fmt|%[a-d]|] "aabaabcbaabcdcbaabcdedcba"
+    =? Just ("aabaabcbaabcdcbaabcd" :+ ())
+
+  scanf [fmt|%[^\n]|] "aabaabcbaabc\ndcbaabcdedcba"
+    =? Just ("aabaabcbaabc" :+ ())
+
   scanf [fmt|%%|] "%"
     =? Just ()
 
