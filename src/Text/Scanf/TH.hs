@@ -23,6 +23,7 @@ formatString ('%' : s1) =
     's' : s' -> [|string $(formatString s')|]
     '[' : s' -> mkScanset s'
     '%' : s' -> [|constant "%" $(formatString s')|]
+    '0' : s' -> [|constant "\0" $(formatString s')|]
     _ -> error "Invalid format string"
   where
     mkScanset :: String -> Q Exp
