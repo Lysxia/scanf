@@ -1,8 +1,0 @@
-Test suite example-test: RUNNING...
-fromList " ab"
-fromList " ab"
-fromList "]"
-fromList "abcd"
-fromList "\n"
-Test suite example-test: PASS
-Test suite logged to: /dcs/25/u5742529/scanf/dist-newstyle/build/x86_64-linux/ghc-9.4.8/scanf-0.1.0.0/t/example-test/test/scanf-0.1.0.0-example-test.log
