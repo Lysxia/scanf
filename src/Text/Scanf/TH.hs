@@ -8,7 +8,6 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.Quote
 
-import Debug.Trace
 import Text.Scanf.Internal
 
 import Data.Set (Set, empty, insert)
@@ -27,7 +26,7 @@ formatString ('%' : s1) =
     _ -> error "Invalid format string"
   where
     mkScanset :: String -> Q Exp
-    mkScanset s' = [|trace (show set) $ scanset set inc $(formatString s'')|]
+    mkScanset s' = [|scanset set inc $(formatString s'')|]
       where
         set :: Set Char
         inc :: Bool
