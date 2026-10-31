@@ -5,6 +5,7 @@
 module Text.Scanf
   ( -- * Main definitions
     scanf
+  , scanf'
   , printf
   , (:+)(..)
   , fmt
