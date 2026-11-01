@@ -10,7 +10,7 @@ import Language.Haskell.TH.Quote
 
 import Text.Scanf.Internal
 
-import Data.Set (Set, empty, insert)
+import Data.Set (Set, empty, insert, singleton)
 
 formatString :: String -> Q Exp
 formatString "" = [|Empty|]
@@ -37,21 +37,20 @@ formatString ('%' : s1) =
 
 
         parseScanset :: String -> ((Set Char, String), Bool)
-        parseScanset []          = error "Unterminated scanset"
-        parseScanset ['^', ']'] = error "Unterminated scanset"
-        parseScanset ('^' : t'') = (parseScanset' t'', False)
-        parseScanset (']' : t'') = ((insert ']' set', t'''), True)
-          where (set', t''') = parseScanset' t''
+        parseScanset []                = error "Unterminated scanset"
+        parseScanset ['^', ']']        = error "Unterminated scanset"
+        parseScanset ('^' : ']' : t'') = (parseScanset' (singleton ']') t'', False)
+        parseScanset ('^' : t'')       = (parseScanset' empty           t'', False)
+        parseScanset (']' : t'')       = (parseScanset' (singleton ']') t'', True)
+        parseScanset t''               = (parseScanset' empty           t'', True)
 
-        parseScanset t''         = (parseScanset' t'', True)
 
+        parseScanset' :: Set Char -> String -> (Set Char, String)
+        parseScanset' _ []          = error "Unterminated scanset"
+        parseScanset' s (']' : t'') = (s, t'')
+        parseScanset' _ ['\\']      = error "Unterminated scanset"
 
-        parseScanset' :: String -> (Set Char, String)
-        parseScanset' []          = error "Unterminated scanset"
-        parseScanset' (']' : t'') = (empty, t'')
-        parseScanset' ['\\']      = error "Unterminated scanset"
-
-        parseScanset' ('\\' : c : t'') = parseScanset' $ ch : t''
+        parseScanset' s ('\\' : c : t'') = parseScanset' s $ ch : t''
           where
             ch = case c of
               'a'  -> toEnum 0x07
@@ -69,14 +68,9 @@ formatString ('%' : s1) =
               '0'  -> toEnum 0x00
               _    -> error "Unknown escape sequence"
 
-        parseScanset' (c1 : '-' : ']' : t'') = (insert '-' $ insert c1 set', t''')
-          where (set', t''') = parseScanset' t''
-
-        parseScanset' (c1 : '-' : c2 : t'') = (foldr insert set' [c1..c2], t''')
-          where (set', t''') = parseScanset' t''
-
-        parseScanset' (c   : t'') = (insert c set', t''')
-          where (set', t''') = parseScanset' t''
+        parseScanset' s (c1 : '-' : ']' : t'') = parseScanset' (insert '-' $ insert c1 s) t''
+        parseScanset' s (c1 : '-' : c2  : t'') = parseScanset' (foldr insert s [c1..c2])  t''
+        parseScanset' s (c  :             t'') = parseScanset' (insert c s)               t''
 
 formatString s@(c : _) | isSpace c =
   let (s0, s') = span isSpace s

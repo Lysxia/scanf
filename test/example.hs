@@ -29,6 +29,9 @@ main = do
   scanf [fmt|%[]]|] "]]]]]]]a]]]]]"
     =? Just ("]]]]]]]" :+ ())
 
+  scanf [fmt|%[^]]|] "aaaaaaa]aaaaa"
+    =? Just ("aaaaaaa" :+ ())
+
   scanf [fmt|%[a-d]|] "aabaabcbaabcdcbaabcdedcba"
     =? Just ("aabaabcbaabcdcbaabcd" :+ ())
 
