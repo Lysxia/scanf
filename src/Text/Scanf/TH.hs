@@ -15,7 +15,7 @@ import Data.Set (Set, empty, insert, singleton)
 formatString :: String -> Q Exp
 formatString "" = [|Empty|]
 formatString ('\\' :        s1) = [|constant [ec] $(formatString s1')|]
-  where (ec : s1') = escape s1
+  where (ec, s1') = escape s1
 formatString ('%'  :        s1) =
   case s1 of
     'c' : s' -> [|char $(formatString s')|]
@@ -51,9 +51,9 @@ formatString ('%'  :        s1) =
         parseScanset' _ ['\\']                            = error "Unterminated scanset"
         parseScanset' s (']'  :               t'') = (s, t'')
         parseScanset' s ('\\' :               t'') = parseScanset' (insert ec s)              t'''
-          where (ec : t''') = escape t''
+          where (ec, t''') = escape t''
         parseScanset' s (c1   : '-'  : '\\' : t'') = parseScanset' (foldr insert s [c1..ec])  t'''
-          where (ec : t''') = escape t''
+          where (ec, t''') = escape t''
         parseScanset' s (c1   : '-'  : ']'  : t'') = parseScanset' (insert '-' $ insert c1 s) t''
         parseScanset' s (c1   : '-'  : c2   : t'') = parseScanset' (foldr insert s [c1..c2])  t''
         parseScanset' s (c    :               t'') = parseScanset' (insert c s)               t''
@@ -67,31 +67,31 @@ formatString s =
 
 
 -- Returns the input string after applying escaping to the first character(s).
-escape :: String -> String
+escape :: String -> (Char,String)
 escape []      = error "Can't escape an empty string"
 escape (c : s) =
   case c of
-    '0'  -> toEnum 0x00 : s
-    'a'  -> toEnum 0x07 : s
-    'b'  -> toEnum 0x08 : s
-    'e'  -> toEnum 0x1b : s
-    'f'  -> toEnum 0x0c : s
-    'n'  -> toEnum 0x0a : s
-    'r'  -> toEnum 0x0d : s
-    't'  -> toEnum 0x09 : s
-    'v'  -> toEnum 0x0b : s
+    '0'  -> (toEnum 0x00, s)
+    'a'  -> (toEnum 0x07, s)
+    'b'  -> (toEnum 0x08, s)
+    'e'  -> (toEnum 0x1b, s)
+    'f'  -> (toEnum 0x0c, s)
+    'n'  -> (toEnum 0x0a, s)
+    'r'  -> (toEnum 0x0d, s)
+    't'  -> (toEnum 0x09, s)
+    'v'  -> (toEnum 0x0b, s)
     'x'  -> escapeHex     s
-    '\'' -> toEnum 0x27 : s
-    '"'  -> toEnum 0x22 : s
-    '?'  -> toEnum 0x3f : s
-    '\\' -> toEnum 0x5c : s
+    '\'' -> (toEnum 0x27, s)
+    '"'  -> (toEnum 0x22, s)
+    '?'  -> (toEnum 0x3f, s)
+    '\\' -> (toEnum 0x5c, s)
     _    -> error "Unknown escape sequence"
   where
     -- Replaces two hex digits with a character of that value.
-    escapeHex :: String -> String
+    escapeHex :: String -> (Char,String)
     escapeHex (c1 : c0 : t)
       | d1 >= 16 || d0 >= 16 = error "Unknown escape sequence"
-      | otherwise            = (toEnum $ 16*d1 + d0) : t
+      | otherwise            = (toEnum $ 16*d1 + d0 , t)
       where
         d1, d0 :: Int
         d1 = fromEnum c1 - fromEnum '0'
