@@ -13,10 +13,10 @@ import Text.Scanf.Internal
 import Data.Set (Set, empty, insert, singleton)
 
 formatString :: String -> Q Exp
-formatString "" = [|Empty|]
-formatString ('\\' :        s1) = [|constant [ec] $(formatString s1')|]
+formatString ""          = [|Empty|]
+formatString ('\\' : s1) = [|constant [ec] $(formatString s1')|]
   where (ec, s1') = escape s1
-formatString ('%'  :        s1) =
+formatString ('%'  : s1) =
   case s1 of
     'c' : s' -> [|char $(formatString s')|]
     'd' : s' -> [|int $(formatString s')|]
