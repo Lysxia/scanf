@@ -66,7 +66,8 @@ formatString s =
   in [|constant $(lift s0) $(formatString s')|]
 
 
--- Returns the input string after applying escaping to the first character(s).
+-- Escapes the character(s) in the input string, returning the resulting
+-- character and string.
 escape :: String -> (Char,String)
 escape []      = error "Can't escape an empty string"
 escape (c : s) =
