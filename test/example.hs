@@ -44,6 +44,15 @@ main = do
   scanf [fmt|a a|] "a  a b"
     =? Just ()
 
+  scanf [fmt|\n\n\n%[\x08\x09]|] "\n\n\n\x08\x09\x09"
+    =? Just ("\x08\x09\x09" :+ ())
+
+  scanf [fmt|\n\n\n%[\x08\x09]|] "\n\n\n\x08\x09\x09"
+    =? Just ("\x08\x09\x09" :+ ())
+
+  scanf [fmt|%[^\\\'\a]|] "abcdef\\\'"
+    =? Just ("abcdef" :+ ())
+
   let s0 = "10-11-12   Fri  4.3C"
       f0 = [fmt|%d-%d-%l %s %f %c|]
       f0' = fmt_ (int . "-" % int . "-" % integer . " " % string . " " % double . " " % char)
