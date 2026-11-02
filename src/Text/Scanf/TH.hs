@@ -90,7 +90,8 @@ escape (c : s) =
     -- Replaces two hex digits with a character of that value.
     escapeHex :: String -> String
     escapeHex (c1 : c0 : t)
-      | d1 >= 16 || d0 >= 16 = error "Invalid 2-digit hexadecimal number following \\x: " ++ [c1, c0]
+      | d1 < 0 || d1 >= 16 ||
+        d0 < 0 || d0 >= 16  = error "Invalid 2-digit hexadecimal number following \\x: " ++ [c1, c0]
       | otherwise            = (toEnum $ 16*d1 + d0) : t
       where
         d1, d0 :: Int
