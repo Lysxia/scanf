@@ -12,23 +12,28 @@ import Text.Scanf.Internal
 
 import Data.Set (Set, empty, insert, singleton)
 
+import Numeric (showHex)
+
 formatString :: String -> Q Exp
-formatString ""          = [|Empty|]
-formatString ('\\' : s1) = [|constant [ec] $(formatString s1')|]
-  where (ec, s1') = escape s1
-formatString ('%'  : s1) =
+formatString = formatString' False
+
+formatString' :: Bool -> String -> Q Exp
+formatString' _     ""          = [|Empty|]
+formatString' True  ('\\' : s1) = [|constant "\\" $(formatString' False s1)|]
+formatString' False ('\\' : s1) = formatString' True $ escape s1
+formatString' _     ('%'  : s1) =
   case s1 of
-    'c' : s' -> [|char $(formatString s')|]
-    'd' : s' -> [|int $(formatString s')|]
-    'f' : s' -> [|double $(formatString s')|]
-    'l' : s' -> [|integer $(formatString s')|]
-    's' : s' -> [|string $(formatString s')|]
+    'c' : s' -> [|char $(formatString' False s')|]
+    'd' : s' -> [|int $(formatString' False s')|]
+    'f' : s' -> [|double $(formatString' False s')|]
+    'l' : s' -> [|integer $(formatString' False s')|]
+    's' : s' -> [|string $(formatString' False s')|]
     '[' : s' -> mkScanset s'
-    '%' : s' -> [|constant "%" $(formatString s')|]
+    '%' : s' -> [|constant "%" $(formatString' False s')|]
     _ -> error "Invalid format string"
   where
     mkScanset :: String -> Q Exp
-    mkScanset s' = [|scanset set inc $(formatString s'')|]
+    mkScanset s' = [|scanset set inc $(formatString' False s'')|]
       where
         set :: Set Char
         inc :: Bool
@@ -36,68 +41,64 @@ formatString ('%'  : s1) =
 
         ((set, s''), inc) = parseScanset s'
 
-
         parseScanset :: String -> ((Set Char, String), Bool)
         parseScanset []                = error "Unterminated scanset"
         parseScanset ['^', ']']        = error "Unterminated scanset"
-        parseScanset ('^' : ']' : t'') = (parseScanset' (singleton ']') t'', False)
-        parseScanset ('^' :       t'') = (parseScanset' empty           t'', False)
-        parseScanset (']' :       t'') = (parseScanset' (singleton ']') t'', True)
-        parseScanset t''               = (parseScanset' empty           t'', True)
+        parseScanset ('^' : ']' : t'') = (parseScanset' False False (singleton ']') t'', False)
+        parseScanset ('^' :       t'') = (parseScanset' False False empty           t'', False)
+        parseScanset (']' :       t'') = (parseScanset' False False (singleton ']') t'', True)
+        parseScanset t''               = (parseScanset' False False empty           t'', True)
 
+        parseScanset' :: Bool -> Bool -> Set Char -> String -> (Set Char, String)
+        parseScanset' _     _     _ []                         = error "Unterminated scanset"
+        parseScanset' _     _     _ ['\\']                     = error "Unterminated scanset"
+        parseScanset' _     _     s (']'  :               t'') = (s, t'')
+        parseScanset' False _     s ('\\' :               t'') = parseScanset' True  False s $ escape t''
+        parseScanset' _     False s (c1   : '-'  : '\\' : t'') = parseScanset' True  True  s $ c1 : '-' : escape t''
+        parseScanset' _     _     s (c1   : '-'  : ']'  : t'') = parseScanset' False False (insert '-' $ insert c1 s) t''
+        parseScanset' _     _     s (c1   : '-'  : c2   : t'') = parseScanset' False False (foldr insert s [c1..c2])  t''
+        parseScanset' _     _     s (c    :               t'') = parseScanset' False False (insert c s)               t''
 
-        parseScanset' :: Set Char -> String -> (Set Char, String)
-        parseScanset' _ []                                = error "Unterminated scanset"
-        parseScanset' _ ['\\']                            = error "Unterminated scanset"
-        parseScanset' s (']'  :               t'') = (s, t'')
-        parseScanset' s ('\\' :               t'') = parseScanset' (insert ec s)              t'''
-          where (ec, t''') = escape t''
-        parseScanset' s (c1   : '-'  : '\\' : t'') = parseScanset' (foldr insert s [c1..ec])  t'''
-          where (ec, t''') = escape t''
-        parseScanset' s (c1   : '-'  : ']'  : t'') = parseScanset' (insert '-' $ insert c1 s) t''
-        parseScanset' s (c1   : '-'  : c2   : t'') = parseScanset' (foldr insert s [c1..c2])  t''
-        parseScanset' s (c    :               t'') = parseScanset' (insert c s)               t''
-
-formatString s@(c : _) | isSpace c =
+formatString' _ s@(c : _) | isSpace c =
   let (s0, s') = span isSpace s
-  in [|whitespace $(lift s0) $(formatString s')|]
-formatString s =
-  let (s0, s') = break (\c -> isSpace c || c == '%') s
-  in [|constant $(lift s0) $(formatString s')|]
+  in [|whitespace $(lift s0) $(formatString' False s')|]
+formatString' _ s =
+  let (s0, s') = break (\c -> isSpace c || c == '%' || c == '\\') s
+  in [|constant $(lift s0) $(formatString' False s')|]
 
-
--- Escapes the character(s) in the input string, returning the resulting
--- character and string.
-escape :: String -> (Char,String)
+-- Escapes the first character(s) in the input string.
+escape :: String -> String
 escape []      = error "Can't escape an empty string"
 escape (c : s) =
   case c of
-    '0'  -> (toEnum 0x00, s)
-    'a'  -> (toEnum 0x07, s)
-    'b'  -> (toEnum 0x08, s)
-    'e'  -> (toEnum 0x1b, s)
-    'f'  -> (toEnum 0x0c, s)
-    'n'  -> (toEnum 0x0a, s)
-    'r'  -> (toEnum 0x0d, s)
-    't'  -> (toEnum 0x09, s)
-    'v'  -> (toEnum 0x0b, s)
+    '0'  -> toEnum 0x00 : s
+    'a'  -> toEnum 0x07 : s
+    'b'  -> toEnum 0x08 : s
+    'e'  -> toEnum 0x1b : s
+    'f'  -> toEnum 0x0c : s
+    'n'  -> '\n'        : s
+    'r'  -> toEnum 0x0d : s
+    't'  -> '\t'        : s
+    'v'  -> toEnum 0x0b : s
     'x'  -> escapeHex     s
-    '\'' -> (toEnum 0x27, s)
-    '"'  -> (toEnum 0x22, s)
-    '?'  -> (toEnum 0x3f, s)
-    '\\' -> (toEnum 0x5c, s)
-    _    -> error "Unknown escape sequence"
+    '\'' -> '\''        : s
+    '"'  -> '\"'        : s
+    '?'  -> toEnum 0x3f : s
+    '\\' -> '\\'        : s
+    _    -> error $ "Unknown escape sequence " ++ "(0x" ++ showHex (fromEnum c) "): '" ++ [c] ++ "'"
   where
     -- Replaces two hex digits with a character of that value.
-    escapeHex :: String -> (Char,String)
+    escapeHex :: String -> String
     escapeHex (c1 : c0 : t)
-      | d1 >= 16 || d0 >= 16 = error "Unknown escape sequence"
-      | otherwise            = (toEnum $ 16*d1 + d0 , t)
+      | d1 >= 16 || d0 >= 16 = error "Invalid 2-digit hexadecimal number following \\x: " ++ [c1, c0]
+      | otherwise            = (toEnum $ 16*d1 + d0) : t
       where
         d1, d0 :: Int
-        d1 = fromEnum c1 - fromEnum '0'
-        d0 = fromEnum c0 - fromEnum '0'
-    escapeHex _              = error "Unknown escape sequence"
+        d1 | c1 >= 'a' = 10 + fromEnum c1 - fromEnum 'a'
+           | otherwise = fromEnum c1 - fromEnum '0'
+        d0 | c0 >= 'a' = 10 + fromEnum c0 - fromEnum 'a'
+           | otherwise = fromEnum c0 - fromEnum '0'
+    escapeHex _              = error "Missing 2-digit hexadecimal number following \\x."
 
 -- | Parse a typed 'Format' string.
 --
