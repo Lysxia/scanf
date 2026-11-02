@@ -89,17 +89,15 @@ escape (c : s) =
   where
     -- Replaces two hex digits with a character of that value.
     escapeHex :: String -> String
-    escapeHex (c1 : c0 : t)
-      | d1 < 0 || d1 >= 16 ||
-        d0 < 0 || d0 >= 16  = error "Invalid 2-digit hexadecimal number following \\x: " ++ [c1, c0]
-      | otherwise            = (toEnum $ 16*d1 + d0) : t
+    escapeHex (c1 : c0 : t) = (toEnum $ 16 * fromHexDigit c1 + fromHexDigit c0) : t
       where
-        d1, d0 :: Int
-        d1 | c1 >= 'a' = 10 + fromEnum c1 - fromEnum 'a'
-           | otherwise = fromEnum c1 - fromEnum '0'
-        d0 | c0 >= 'a' = 10 + fromEnum c0 - fromEnum 'a'
-           | otherwise = fromEnum c0 - fromEnum '0'
-    escapeHex _              = error "Missing 2-digit hexadecimal number following \\x."
+        fromHexDigit :: Char -> Int
+        fromHexDigit hc | hc <  '0' = error $ "Invalid hex digit in \\x sequence: " ++ [hc]
+                        | hc <= '9' = fromEnum hc - fromEnum '0'
+                        | hc <= 'Z' = 10 + fromEnum hc - fromEnum 'A'
+                        | hc <= 'z' = 10 + fromEnum hc - fromEnum 'a'
+                        | otherwise = error $ "Invalid hex digit in \\x sequence: " ++ [hc]
+    escapeHex _ = error "Missing 2-digit hexadecimal number following \\x."
 
 -- | Parse a typed 'Format' string.
 --
