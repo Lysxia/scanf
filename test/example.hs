@@ -80,6 +80,9 @@ main = do
   scanf [fmt|%[^%b-a]|] "ababbaa%%%"
     =? Just ("ababbaa" :+ ())
 
+  scanf [fmt|%[\x2C\x2b]|] "\x2C\x2c\x2B\x2b"
+    =? Just ("\x2c\x2C\x2b\x2B" :+ ())
+
 
   let s0 = "10-11-12   Fri  4.3C"
       f0 = [fmt|%d-%d-%l %s %f %c|]
