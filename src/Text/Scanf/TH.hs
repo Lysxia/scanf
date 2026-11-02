@@ -92,10 +92,9 @@ escape (c : s) =
     escapeHex (c1 : c0 : t) = (toEnum $ 16 * fromHexDigit c1 + fromHexDigit c0) : t
       where
         fromHexDigit :: Char -> Int
-        fromHexDigit hc | hc <  '0' = error $ "Invalid hex digit in \\x sequence: " ++ [hc]
-                        | hc <= '9' = fromEnum hc - fromEnum '0'
-                        | hc <= 'Z' = 10 + fromEnum hc - fromEnum 'A'
-                        | hc <= 'z' = 10 + fromEnum hc - fromEnum 'a'
+        fromHexDigit hc | '0' <= hc && hc <= '9' = fromEnum hc - fromEnum '0'
+                        | 'A' <= hc && hc <= 'F' = 10 + fromEnum hc - fromEnum 'A'
+                        | 'a' <= hc && hc <= 'f' = 10 + fromEnum hc - fromEnum 'a'
                         | otherwise = error $ "Invalid hex digit in \\x sequence: " ++ [hc]
     escapeHex _ = error "Missing 2-digit hexadecimal number following \\x."
 
