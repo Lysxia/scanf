@@ -23,7 +23,7 @@ formatString' True  ('\\' : s1) = [|constant "\\" $(formatString' False s1)|]
 formatString' False ('\\' : s1) = formatString' True $ escape s1
 formatString' _     ('%'  : s1) =
   case s1 of
-    'c' : s' -> [|char $(formatString' False s')|]
+    'c' : s' -> [|char $(formatString s')|]
     'd' : s' -> [|int $(formatString' False s')|]
     'f' : s' -> [|double $(formatString' False s')|]
     'l' : s' -> [|integer $(formatString' False s')|]
