@@ -98,8 +98,8 @@ double = Readable
 string :: Format t -> Format (String :+ t)
 string = String
 
--- | Format a scanset 'String', given a set of characters to include if argument
--- | 2 is True, excluding them otherwise.
+-- | Format a scanset 'String', given a set of characters to include if second argument
+-- | is @True@, excluding them otherwise.
 scanset :: Set Char -> Bool -> Format t -> Format (String :+ t)
 scanset = Scanset
 
