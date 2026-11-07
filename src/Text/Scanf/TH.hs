@@ -107,9 +107,6 @@ escape' (c : s) =
                         | otherwise = error $ "Invalid hex digit in \\x sequence: " ++ [hc]
     escapeHex _ = error "Missing 2-digit hexadecimal number following \\x."
 
-
-
-
 -- | Parse a typed 'Format' string.
 --
 -- The following conversion strings are supported:
