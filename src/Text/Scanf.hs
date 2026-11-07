@@ -5,6 +5,7 @@
 module Text.Scanf
   ( -- * Main definitions
     scanf
+  , scanf'
   , printf
   , (:+)(..)
   , fmt
@@ -17,6 +18,7 @@ module Text.Scanf
   , int
   , double
   , string
+  , scanset
   , char
   ) where
 

@@ -20,11 +20,69 @@ main = do
   scanf [fmt|%s %s|] " a b"
     =? Just ("" :+ "a" :+ ())
 
+  scanf [fmt|%[ ab]|] " a b"
+    =? Just (" a b" :+ ())
+
+  scanf [fmt|%[^ ab]|] "c a b"
+    =? Just ("c" :+ ())
+
+  scanf [fmt|%[]]|] "]]]]]]]a]]]]]"
+    =? Just ("]]]]]]]" :+ ())
+
+  scanf [fmt|%[^]]|] "aaaaaaa]aaaaa"
+    =? Just ("aaaaaaa" :+ ())
+
+  scanf [fmt|%[a-d]|] "aabaabcbaabcdcbaabcdedcba"
+    =? Just ("aabaabcbaabcdcbaabcd" :+ ())
+
+  scanf [fmt|%[^\n]|] "aabaabcbaabc\ndcbaabcdedcba"
+    =? Just ("aabaabcbaabc" :+ ())
+
   scanf [fmt|%%|] "%"
     =? Just ()
 
   scanf [fmt|a a|] "a  a b"
     =? Just ()
+
+  scanf [fmt|\n\n\n%[\x08\x09]|] "\n\n\n\x08\x09\x09"
+    =? Just ("\x08\x09\x09" :+ ())
+
+  scanf [fmt|\n\n\n%[\x08\x09]|] "\n\n\n\x08\x09\x09"
+    =? Just ("\x08\x09\x09" :+ ())
+
+  scanf [fmt|%[^\\\'\a]|] "abcdef\\\'"
+    =? Just ("abcdef" :+ ())
+
+  scanf [fmt|\a\b\t\x6c\x13%[^\b]|] "\a\b\tl\x13 1234567890\x12\b"
+    =? Just (" 1234567890\x12" :+ ())
+
+  scanf [fmt|\a\b\t\x6c\x13 %[^\b]|] "\a\b\tl\x13 \n\n\t\x09\x020 1234567890\x12\b"
+    =? Just ("1234567890\x12" :+ ())
+
+  scanf [fmt|This is an alphanumeric string: %[a-z0-9]|] "This is an alphanumeric string: abcdefghijklmnopqrstuv0123456789"
+    =? Just ("abcdefghijklmnopqrstuv0123456789" :+ ())
+
+  scanf [fmt|test: %[\x00-\x10]|] "test: \x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11"
+    =? Just ("\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10" :+ ())
+
+  scanf [fmt|test: %[\\-\\]|] "test: \\\\\\\\\\\\\a"
+    =? Just ("\\\\\\\\\\\\" :+ ())
+
+  scanf [fmt|test: %[\t-\n]|] "test: \t\n\t\n\t\n\t"
+    =? Just ("" :+ ())
+
+  scanf [fmt|test:%[ ]%[\t-\n]:test2|] "test: \t\n\t\n\t\n\t:test2"
+    =? Just (" " :+ "\t\n\t\n\t\n\t" :+ ())
+
+  scanf [fmt|%[%b-a]|] "%%%ababbaa"
+    =? Just ("%%%" :+ ())
+
+  scanf [fmt|%[^%b-a]|] "ababbaa%%%"
+    =? Just ("ababbaa" :+ ())
+
+  scanf [fmt|%[\x2C\x2b]|] "\x2C\x2c\x2B\x2b"
+    =? Just ("\x2c\x2C\x2b\x2B" :+ ())
+
 
   let s0 = "10-11-12   Fri  4.3C"
       f0 = [fmt|%d-%d-%l %s %f %c|]

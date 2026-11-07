@@ -19,12 +19,13 @@ printf (fmt_ (int . " lazy " % string . " and " % int . " strict " % string)
 
 With quasiquotes, the following conversion strings are supported:
 
-- `%d`: signed integer (`Int`)
-- `%l`: signed integer (`Integer`, unbounded)
-- `%f`: floating point (`Double`)
-- `%s`: string of non-space characters (`String`)
-- `%c`: single character (`Char`)
-- `%%`: parse/print a literal percent character
+- `%d`    : signed integer (`Int`)
+- `%l`    : signed integer (`Integer`, unbounded)
+- `%f`    : floating point (`Double`)
+- `%s`    : string of non-space characters (`String`)
+- `%[...]`: [Scanset](https://www.man7.org/linux/man-pages/man3/sscanf.3.html) (`String`)
+- `%c`    : single character (`Char`)
+- `%%`    : parse/print a literal percent character
 
 N.B.: in `scanf`, spaces in the format string match any number of whitespace
 character until the next nonspace character.
