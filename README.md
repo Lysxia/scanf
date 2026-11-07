@@ -1,4 +1,6 @@
-# Haskell scanf [![Build Status](https://travis-ci.org/Lysxia/scanf.svg?branch=master)](https://travis-ci.org/Lysxia/scanf) [![Hackage](https://img.shields.io/hackage/v/scanf.svg)](https://hackage.haskell.org/package/scanf)
+# Haskell scanf
+
+[![Build Status](https://github.com/Lysxia/scanf/workflows/Haskell-CI/badge.svg)](https://github.com/Lysxia/workflows/actions?query=branch%3Amaster) [![Hackage](https://img.shields.io/hackage/v/scanf.svg)](https://hackage.haskell.org/package/scanf)
 
 A lightweight library for one-off parsing and printing.
 
