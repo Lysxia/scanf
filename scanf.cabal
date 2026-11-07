@@ -26,8 +26,8 @@ library
     Text.Scanf.Internal
     Text.Scanf.TH
   build-depends:
-    template-haskell,
-    containers,
+    template-haskell < 3,
+    containers >= 0.6.6 && < 1,
     base >= 4.7 && < 5
   ghc-options:         -Wall
   default-language:    Haskell2010
@@ -37,7 +37,6 @@ test-suite example-test
   main-is: example.hs
   build-depends:
     scanf,
-    containers,
     base
   ghc-options: -Wall
   default-language: Haskell2010
